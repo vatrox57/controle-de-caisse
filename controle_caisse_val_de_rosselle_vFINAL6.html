@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Val de Rosselle - Contrôle Caisse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        lions: {
+                            blue: '#003366',
+                            gold: '#FFC72C',
+                            darkGold: '#D99B00',
+                            lightBg: '#F8FAFC'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+                font-size: 10pt;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-container {
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                max-width: 100% !important;
+                width: 100% !important;
+            }
+
+            img {
+                display: block !important;
+                max-width: 100% !important;
+            }
+
+            input::-webkit-outer-spin-button,
+            input::-webkit-inner-spin-button {
+                -webkit-appearance: none !important;
+                margin: 0 !important;
+            }
+            input[type=number] {
+                -moz-appearance: textfield !important;
+            }
+
+            input {
+                border: 1px solid #fde047 !important;
+                background-color: #fef9c3 !important;
+                color: #000000 !important;
+                font-weight: bold !important;
+                box-shadow: none !important;
+            }
+
+            .page-break-inside-avoid {
+                page-break-inside: avoid;
+            }
+        }
+
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        input:focus {
+            outline: 2px solid #FFC72C;
+            outline-offset: 1px;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen py-4 md:py-8 font-sans">
+
+    <!-- BARRE D'ACTIONS FLOTTANTE -->
+    <div class="no-print max-w-4xl mx-auto mb-6 px-4 flex flex-wrap justify-between items-center gap-4">
+        <div class="flex items-center space-x-2">
+            <span class="inline-block w-3 h-3 rounded-full bg-emerald-500"></span>
+            <span class="text-sm font-medium text-slate-600">Calculs automatiques actifs</span>
+        </div>
+        <div class="flex items-center gap-3">
+            <button id="btnReset" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium rounded-lg text-sm transition flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                Effacer
+            </button>
+            <button id="btnPrint" class="px-5 py-2 bg-lions-blue hover:bg-blue-900 text-white font-semibold rounded-lg text-sm shadow-md transition flex items-center gap-2">
+                <svg class="w-4 h-4 text-lions-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                Imprimer / PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- DOCUMENT PRINCIPAL -->
+    <div class="print-container max-w-4xl mx-auto bg-white rounded-xl shadow-xl border border-slate-200 p-6 md:p-10 space-y-6">
+
+        <!-- EN-TÊTE ET LOGO -->
+        <header class="border-b-2 border-lions-blue pb-4 flex flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-4 text-left">
+                <img src="data:image/png;base64,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" alt="Logo officiel Lions Club International" class="w-20 h-20 shrink-0 object-contain">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-black text-lions-blue tracking-tight uppercase">Val de Rosselle</h1>
+                    <p class="text-sm font-semibold text-slate-500 tracking-wider uppercase">Fiche officielle de Contrôle de Caisse</p>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 text-right space-y-2">
+                <div class="flex items-center justify-end gap-3">
+                    <label class="text-xs font-bold text-slate-600 uppercase">Événement :</label>
+                    <input type="text" id="eventName" value="Soirée Disco" class="font-bold text-slate-800 text-sm bg-yellow-100 px-2 py-1 rounded border border-yellow-300 text-center w-40">
+                </div>
+                <div class="flex items-center justify-end gap-3">
+                    <label class="text-xs font-bold text-slate-600 uppercase">Édité le :</label>
+                    <input type="date" id="eventDate" class="font-bold text-slate-800 text-sm bg-yellow-100 px-2 py-1 rounded border border-yellow-300 text-center">
+                </div>
+            </div>
+        </header>
+
+        <!-- SECTION 1 : COMPTAGE ESPÈCES -->
+        <section class="space-y-3">
+            <h2 class="text-xs font-black tracking-wider text-slate-500 uppercase bg-slate-100 px-3 py-1.5 rounded">1. Comptage des Espèces</h2>
+            
+            <div class="grid grid-cols-2 gap-6">
+                <!-- PIÈCES -->
+                <div class="bg-slate-50/50 rounded-lg border border-slate-200 p-4 space-y-2">
+                    <h3 class="text-sm font-bold text-lions-blue border-b border-slate-200 pb-1 mb-3 flex justify-between">
+                        <span>Pièces</span>
+                        <span class="text-xs text-slate-400 font-normal">Nombre × Valeur</span>
+                    </h3>
+                    
+                    <div class="space-y-2 text-sm">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="w-16 font-semibold text-slate-600">0,05 €</span>
+                            <div class="flex items-center gap-2">
+                                <input type="number" min="0" data-val="0.05" class="coin-input w-20 p-1 text-center font-bold bg-yellow-100 border border-yellow-300 rounded" inputmode="numeric">
+                                <span class="w-20 text-right font-mono font-medium text-slate-700" id="res_c005">0,00 €</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="w-16 font-semibold text-slate-600">0,10 €</span>
+                            <div class="flex items-center gap-2">
+                                <input type="number" min="0" data-val="0.10" class="coin-input w-20 p-1 text-center font-bold bg-yellow-100 border border-yellow-300 rounded" inputmode="numeric">
+                                <span class="w-20 text-right font-mono font-medium text-slate-700" id="res_c010">0,00 €</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="w-16 font-semibold text-slate-600">0,20 €</span>
+                            <div class="flex items-center gap-2">
+                                <input type="number" min="0" data-val="0.20" class="coin-input w-20 p-1 text-center font-bold bg-yellow-100 border border-yellow-300 rounded" inputmode="numeric">
+                                <span class="w-20 text-right font-mono font-medium text-slate-700" id="res_c020">0,00 €</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="w-16 font-semibold text-slate-600">0,50 €</span>
+                            <div class="flex items-center gap-2">
+                                <input type="number" min="0" data-val="0.50" class="coin-input w-20 p-1 text-center font-bold bg-yellow-100 border border-yellow-300 rounded" inputmode="numeric">
+                                <span class="w-20 text-right font-mono font-medium text-slate-700" id="res_c050">0,00 €</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="w-16 font-semibold text-slate-600">1,00 €</span>
+                            <div class="flex items-center gap-2">
+                                <input type="number" min="0" data-val="1.00" class="coin-input w-20 p-1 text-center font-bold bg-yellow-100 border border-yellow-300 rounded" inputmode="numeric">
+                                <span class="w-20 text-right font-mono font-medium text-slate-700" id="res_c100">0,00 €</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="w-16 font-semibold text-slate-600">2,00 €</span>
+                            <div class="flex items-center gap-2">
+                                <input type="number" min="0" data-val="2.00" class="coin-input w-20 p-1 text-center font-bold bg-yellow-100 border border-yellow-300 rounded" inputmode="numeric">
+                                <span class="w-20 text-right font-mono font-medium text-slate-700" id="res_c200">0,00 €</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-200 flex justify-between items-center font-bold">
+                        <span class="text-slate-700">Total 1 :</span>
+                        <span id="total1" class="text-base font-mono bg-white px-3 py-1 rounded border border-slate-300">450,50 €</span>
+                    </div>
+                </div>
+
+                <!-- BILLETS -->
+                <div class="bg-slate-50/50 rounded-lg border border-slate-200 p-4 space-y-2">
+                    <h3 class="text-sm font-bold text-lions-blue border-b border-slate-200 pb-1 mb-3 flex justify-between">
+                        <span>Billets</span>
+                        <span class="text-xs text-slate-400 font-normal">Nombre × Valeur</span>
+                    </h3>
+                    
+                    <div class="space-y-2 text-sm">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="w-16 font-semibold text-slate-600">5,00 €</span>
+                            <div class="flex items-center gap-2">
+                                <input type="number" min="0" data-val="5" class="bill-input w-20 p-1 text-center font-bold bg-yellow-100 border border-yellow-300 rounded" inputmode="numeric">
+                                <span class="w-24 text-right font-mono font-medium text-slate-700" id="res_b5">195,00 €</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="w-16 font-semibold text-slate-600">10,00 €</span>
+                            <div class="flex items-center gap-2">
+                                <input type="number" min="0" data-val="10" class="bill-input w-20 p-1 text-center font-bold bg-yellow-100 border border-yellow-300 rounded" inputmode="numeric">
+                                <span class="w-24 text-right font-mono font-medium text-slate-700" id="res_b10">150,00 €</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="w-16 font-semibold text-slate-600">20,00 €</span>
+                            <div class="flex items-center gap-2">
+                                <input type="number" min="0" data-val="20" class="bill-input w-20 p-1 text-center font-bold bg-yellow-100 border border-yellow-300 rounded" inputmode="numeric">
+                                <span class="w-24 text-right font-mono font-medium text-slate-700" id="res_b20">2 700,00 €</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="w-16 font-semibold text-slate-600">50,00 €</span>
+                            <div class="flex items-center gap-2">
+                                <input type="number" min="0" data-val="50" class="bill-input w-20 p-1 text-center font-bold bg-yellow-100 border border-yellow-300 rounded" inputmode="numeric">
+                                <span class="w-24 text-right font-mono font-medium text-slate-700" id="res_b50">2 700,00 €</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="w-16 font-semibold text-slate-600">100,00 €</span>
+                            <div class="flex items-center gap-2">
+                                <input type="number" min="0" data-val="100" class="bill-input w-20 p-1 text-center font-bold bg-yellow-100 border border-yellow-300 rounded" inputmode="numeric">
+                                <span class="w-24 text-right font-mono font-medium text-slate-700" id="res_b100">0,00 €</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="w-16 font-semibold text-slate-600">200,00 €</span>
+                            <div class="flex items-center gap-2">
+                                <input type="number" min="0" data-val="200" class="bill-input w-20 p-1 text-center font-bold bg-yellow-100 border border-yellow-300 rounded" inputmode="numeric">
+                                <span class="w-24 text-right font-mono font-medium text-slate-700" id="res_b200">0,00 €</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-200 flex justify-between items-center font-bold">
+                        <span class="text-slate-700">Total 2 :</span>
+                        <span id="total2" class="text-base font-mono bg-white px-3 py-1 rounded border border-slate-300">5 745,00 €</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2 : CHÈQUES, CB & AUTRES RÈGLEMENTS -->
+        <section class="space-y-4">
+            <h2 class="text-xs font-black tracking-wider text-slate-500 uppercase bg-slate-100 px-3 py-1.5 rounded">2. Autre Modes de Règlement</h2>
+            
+            <div class="bg-slate-50/50 border border-slate-200 rounded-lg p-5 space-y-4 text-sm font-semibold text-slate-800">
+                
+                <!-- Ligne 1 : Total 1 & Total 2 -->
+                <div class="grid grid-cols-2 gap-8 items-center">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-slate-700">Total 1 :</span>
+                        <span id="total1_sec2" class="font-mono text-base bg-white px-4 py-1 rounded border border-slate-300">450,50 €</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-slate-700">Total 2 :</span>
+                        <span id="total2_sec2" class="font-mono text-base bg-white px-4 py-1 rounded border border-slate-300">5 745,00 €</span>
+                    </div>
+                </div>
+
+                <!-- Ligne 2 : Chèques (Total 3) & CB (Total 4) -->
+                <div class="grid grid-cols-2 gap-8 items-center pt-2">
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-slate-700 w-16">Chèques</span>
+                        <input type="number" min="0" id="chequeCount" placeholder="" class="w-14 p-1 text-center font-bold bg-yellow-100 border border-yellow-300 rounded" inputmode="numeric">
+                        <span class="font-bold text-slate-700 ml-2">Total 3 :</span>
+                        <input type="number" step="0.01" id="chequeTotal" placeholder="" class="w-32 p-1 text-right font-bold bg-yellow-100 border border-yellow-300 rounded" inputmode="decimal">
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-slate-700 w-10">CB</span>
+                        <input type="number" min="0" id="cbCount" value="1" placeholder="" class="w-14 p-1 text-center font-bold bg-yellow-100 border border-yellow-300 rounded" inputmode="numeric">
+                        <span class="font-bold text-slate-700 ml-2">Total 4 :</span>
+                        <div class="flex items-center gap-1">
+                            <input type="number" step="0.01" id="cbTotal" value="1320.00" placeholder="" class="w-32 p-1 text-right font-bold bg-yellow-100 border border-yellow-300 rounded text-red-700" inputmode="decimal">
+                            <span class="text-red-700 font-bold text-base">(B)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ligne 3 : Règlts avant comptage 5 (C) & Total 1+2+3+4+5 (A) -->
+                <div class="grid grid-cols-2 gap-8 items-center pt-2 border-t border-slate-200">
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-slate-700">Règlt avant comptage 5 :</span>
+                        <div class="flex items-center gap-1">
+                            <input type="number" step="0.01" id="regltAvantComptage" value="400.00" class="w-32 p-1 text-right font-bold bg-yellow-100 border border-yellow-300 rounded text-red-700" inputmode="decimal">
+                            <span class="text-red-700 font-bold text-base">(C)</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-slate-900">Total 1+2+3+4+5 :</span>
+                        <div class="flex items-center gap-1">
+                            <span id="totalA" class="font-mono text-base bg-white px-4 py-1 rounded border border-slate-300">7 915,50 €</span>
+                            <span class="text-emerald-700 font-bold text-base">(A)</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 3 : CALCUL DU CHIFFRE D'AFFAIRES -->
+        <section class="bg-blue-50/60 border border-blue-200 rounded-lg p-4 space-y-3">
+            <h2 class="text-xs font-black tracking-wider text-blue-900 uppercase">3. Calcul du Chiffre d'Affaires</h2>
+            <div class="grid grid-cols-2 gap-4 items-center">
+                <div class="flex items-center justify-between bg-white p-2.5 rounded border border-blue-200">
+                    <span class="text-sm font-bold text-slate-700">Fonds de caisse :</span>
+                    <div class="flex items-center gap-1 font-bold">
+                        <input type="number" step="0.01" id="fondsDeCaisse" value="1500.00" class="w-28 p-1 text-right font-bold bg-yellow-100 border border-yellow-300 rounded" inputmode="decimal">
+                        <span>€</span>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between bg-white p-2.5 rounded border border-emerald-300 font-bold">
+                    <span class="text-sm text-emerald-800">Chiffre d'affaires :</span>
+                    <span id="chiffreAffaires" class="text-lg font-mono text-emerald-600">6 415,50 €</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4 : REMISE BANQUE & PRESTATAIRES (ESPACEMENT AMÉLIORÉ) -->
+        <section class="space-y-3">
+            <h2 class="text-xs font-black tracking-wider text-slate-500 uppercase bg-slate-100 px-3 py-1.5 rounded">4. Remise Banque & Règlements Prestataires</h2>
+            
+            <div class="space-y-2">
+                <div class="grid grid-cols-2 gap-2 bg-slate-50 p-2.5 rounded border border-slate-200 text-sm">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold text-slate-500 w-32">Prestataire 1 :</span>
+                        <input type="text" id="prest1_name" value="Equipe Assunta" placeholder="Nom du prestataire" class="w-full p-1 font-semibold bg-yellow-100 border border-yellow-300 rounded">
+                    </div>
+                    <div class="flex items-center justify-end gap-1">
+                        <span class="text-xs font-bold text-slate-500">Montant :</span>
+                        <input type="number" step="0.01" id="prest1_val" value="300.00" class="prest-input w-28 p-1 text-right font-bold bg-yellow-100 border border-yellow-300 rounded" inputmode="decimal">
+                        <span class="font-bold">€</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 bg-slate-50 p-2.5 rounded border border-slate-200 text-sm">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold text-slate-500 w-32">Prestataire 2 :</span>
+                        <input type="text" id="prest2_name" placeholder="Nom du prestataire" class="w-full p-1 font-semibold bg-yellow-100 border border-yellow-300 rounded">
+                    </div>
+                    <div class="flex items-center justify-end gap-1">
+                        <span class="text-xs font-bold text-slate-500">Montant :</span>
+                        <input type="number" step="0.01" id="prest2_val" class="prest-input w-28 p-1 text-right font-bold bg-yellow-100 border border-yellow-300 rounded" inputmode="decimal">
+                        <span class="font-bold">€</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 bg-slate-50 p-2.5 rounded border border-slate-200 text-sm">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold text-slate-500 w-32">Prestataire 3 :</span>
+                        <input type="text" id="prest3_name" placeholder="Nom du prestataire" class="w-full p-1 font-semibold bg-yellow-100 border border-yellow-300 rounded">
+                    </div>
+                    <div class="flex items-center justify-end gap-1">
+                        <span class="text-xs font-bold text-slate-500">Montant :</span>
+                        <input type="number" step="0.01" id="prest3_val" class="prest-input w-28 p-1 text-right font-bold bg-yellow-100 border border-yellow-300 rounded" inputmode="decimal">
+                        <span class="font-bold">€</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 pt-2 text-sm">
+                <div class="bg-slate-100 p-3 rounded-lg flex justify-between items-center font-bold border border-slate-300">
+                    <span class="text-slate-700">Total prestataires (D) :</span>
+                    <span id="totalD" class="font-mono text-base text-red-700">300,00 € (D)</span>
+                </div>
+                <!-- Encadré dépôt en banque parfaitement proportionné -->
+                <div class="bg-lions-blue text-white p-4 rounded-lg flex flex-row justify-between items-center gap-2 font-bold shadow-md">
+                    <span class="text-xs sm:text-sm md:text-base tracking-tight whitespace-nowrap">Dépôt en banque (A - B - C - D) :</span>
+                    <span id="depotBanque" class="text-xl md:text-2xl font-mono text-lions-gold shrink-0">5 895,50 €</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5 : SIGNATURES -->
+        <footer class="pt-6 border-t border-slate-300 grid grid-cols-2 gap-8 page-break-inside-avoid">
+            <div class="space-y-4">
+                <h3 class="text-xs font-black text-slate-500 uppercase tracking-wider">Responsable</h3>
+                <div class="space-y-2 text-sm">
+                    <div class="flex items-center gap-2">
+                        <span class="text-slate-500 text-xs w-16">Nom :</span>
+                        <input type="text" id="respNom" value="HOFF" class="w-full p-1 font-bold bg-yellow-100 border border-yellow-300 rounded">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-slate-500 text-xs w-16">Prénom :</span>
+                        <input type="text" id="respPrenom" value="Pascal" class="w-full p-1 font-bold bg-yellow-100 border border-yellow-300 rounded">
+                    </div>
+                    <div class="pt-4">
+                        <span class="text-xs text-slate-400 block mb-8">Signature :</span>
+                        <div class="border-b border-dashed border-slate-400"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <h3 class="text-xs font-black text-slate-500 uppercase tracking-wider">Vérificateur</h3>
+                <div class="space-y-2 text-sm">
+                    <div class="flex items-center gap-2">
+                        <span class="text-slate-500 text-xs w-16">Nom :</span>
+                        <input type="text" id="verifNom" placeholder="..." class="w-full p-1 font-bold bg-yellow-100 border border-yellow-300 rounded">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-slate-500 text-xs w-16">Prénom :</span>
+                        <input type="text" id="verifPrenom" placeholder="..." class="w-full p-1 font-bold bg-yellow-100 border border-yellow-300 rounded">
+                    </div>
+                    <div class="pt-4">
+                        <span class="text-xs text-slate-400 block mb-8">Signature :</span>
+                        <div class="border-b border-dashed border-slate-400"></div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- SCRIPT DE CALCULS -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const dateInput = document.getElementById('eventDate');
+            if (!dateInput.value) {
+                const today = new Date().toISOString().split('T')[0];
+                dateInput.value = today;
+            }
+
+            const formatEuro = (val) => {
+                return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(val);
+            };
+
+            const calculateAll = () => {
+                let t1 = 0;
+                document.querySelectorAll('.coin-input').forEach(input => {
+                    const count = parseFloat(input.value) || 0;
+                    const val = parseFloat(input.dataset.val);
+                    const subtotal = count * val;
+                    t1 += subtotal;
+                    const valStr = val.toFixed(2);
+                    const resId = 'res_c' + valStr.replace('.', '');
+                    const resElem = document.getElementById(resId);
+                    if (resElem) resElem.textContent = formatEuro(subtotal);
+                });
+                document.getElementById('total1').textContent = formatEuro(t1);
+                document.getElementById('total1_sec2').textContent = formatEuro(t1);
+
+                let t2 = 0;
+                document.querySelectorAll('.bill-input').forEach(input => {
+                    const count = parseFloat(input.value) || 0;
+                    const val = parseFloat(input.dataset.val);
+                    const subtotal = count * val;
+                    t2 += subtotal;
+                    const resElem = document.getElementById('res_b' + val);
+                    if (resElem) resElem.textContent = formatEuro(subtotal);
+                });
+                document.getElementById('total2').textContent = formatEuro(t2);
+                document.getElementById('total2_sec2').textContent = formatEuro(t2);
+
+                const t3 = parseFloat(document.getElementById('chequeTotal').value) || 0;
+                const t4 = parseFloat(document.getElementById('cbTotal').value) || 0;
+                const regltC = parseFloat(document.getElementById('regltAvantComptage').value) || 0;
+
+                const totalA = t1 + t2 + t3 + t4 + regltC;
+                document.getElementById('totalA').textContent = formatEuro(totalA) + ' ';
+
+                const fondsCaisse = parseFloat(document.getElementById('fondsDeCaisse').value) || 0;
+                const ca = totalA - fondsCaisse;
+                document.getElementById('chiffreAffaires').textContent = formatEuro(ca);
+
+                let totalD = 0;
+                document.querySelectorAll('.prest-input').forEach(input => {
+                    totalD += parseFloat(input.value) || 0;
+                });
+                document.getElementById('totalD').textContent = formatEuro(totalD) + ' (D)';
+
+                const depot = totalA - t4 - regltC - totalD;
+                document.getElementById('depotBanque').textContent = formatEuro(depot);
+
+                saveToLocalStorage();
+            };
+
+            const saveToLocalStorage = () => {
+                const data = {};
+                document.querySelectorAll('input').forEach(input => {
+                    if (input.id) data[input.id] = input.value;
+                });
+                localStorage.setItem('val_de_rosselle_cash_data_v2', JSON.stringify(data));
+            };
+
+            const loadFromLocalStorage = () => {
+                const saved = localStorage.getItem('val_de_rosselle_cash_data_v2');
+                if (saved) {
+                    try {
+                        const data = JSON.parse(saved);
+                        Object.keys(data).forEach(id => {
+                            const input = document.getElementById(id);
+                            if (input) input.value = data[id];
+                        });
+                    } catch (e) {
+                        console.error('Erreur chargement localStorage', e);
+                    }
+                }
+            };
+
+            document.querySelectorAll('input').forEach(input => {
+                input.addEventListener('input', calculateAll);
+            });
+
+            document.getElementById('btnPrint').addEventListener('click', () => {
+                window.print();
+            });
+
+            document.getElementById('btnReset').addEventListener('click', () => {
+                if (confirm('Voulez-vous vraiment effacer toutes les données du formulaire ?')) {
+                    document.querySelectorAll('input').forEach(input => {
+                        if (input.type === 'number') {
+                            input.value = '';
+                            input.removeAttribute('value');
+                        }
+                        if (input.type === 'text' && input.id !== 'eventName' && input.id !== 'respNom' && input.id !== 'respPrenom') {
+                            input.value = '';
+                        }
+                    });
+                    document.getElementById('eventName').value = 'Soirée Disco';
+                    const today = new Date().toISOString().split('T')[0];
+                    document.getElementById('eventDate').value = today;
+                    localStorage.removeItem('val_de_rosselle_cash_data_v2');
+                    calculateAll();
+                }
+            });
+
+            loadFromLocalStorage();
+            calculateAll();
+        });
+    </script>
+</body>
+</html>
